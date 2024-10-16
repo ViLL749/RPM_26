@@ -24,7 +24,7 @@ blue = (0, 0, 255)
 line_width = 10
 line_gap = 40
 line_offset = 20
-door_width = 200
+door_width = 40
 max_openings_per_line = 5
 
 # Параметры игрока и начальная позиция
@@ -175,10 +175,7 @@ def show_name_input(elapsed_time):
                 pygame.quit()
                 quit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN and player_name.strip():  # Если нажали Enter и имя не пустое
-                    update_leaderboard(elapsed_time, player_name)
-                    input_active = False  # Закрыть цикл ввода и вернуться в игру
-                elif event.key == pygame.K_BACKSPACE:
+                if event.key == pygame.K_BACKSPACE:
                     player_name = player_name[:-1]  # Удалить последний символ
                 else:
                     player_name += event.unicode  # Добавить символ
@@ -203,9 +200,7 @@ def show_name_input(elapsed_time):
         save_text_rect = save_text.get_rect(center=save_button_rect.center)
         screen.blit(save_text, save_text_rect)
 
-        # Инструкции
-        instruction_text = font.render("Введите ник и нажмите Enter", True, white)
-        screen.blit(instruction_text, (screen_width // 2 - 150, screen_height // 2 - 80))
+
 
         pygame.display.update()
 
@@ -252,13 +247,10 @@ def show_time_message(elapsed_time, result_message, game_over=False):
                 pygame.quit()
                 quit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN and player_name.strip():  # Если нажали Enter и имя не пустое
-                    update_leaderboard(elapsed_time, player_name)
-                    input_active = False
-                elif event.key == pygame.K_BACKSPACE:
+                if event.key == pygame.K_BACKSPACE:
                     player_name = player_name[:-1]  # Удалить последний символ
                 else:
-                    player_name += event.unicode  # Добавить символ в строку
+                    player_name += event.unicode  # Добавить символ
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
@@ -380,7 +372,6 @@ def main():
                 victory_sound.play()  # Проиграть звук победы
             elapsed_time = time.time() - start_time  # Вычислить время
             show_time_message(elapsed_time, "Победа!", game_over=True)  # Показать сообщение о времени и поле для ввода
-            show_leaderboard()  # Показать рейтинг после победы
             pygame.time.delay(5000)  # Дать время игроку увидеть рейтинг
             # Сброс начальных параметров для новой игры
             player_x = screen_width - 12
