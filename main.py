@@ -77,7 +77,7 @@ def show_message(message):
     pygame.display.update()
     pygame.time.delay(5000)
 
-# Функция для отображения сообщения о времени и кнопках
+
 
 
 # Функция для обработки паузы и звука
