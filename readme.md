@@ -4,15 +4,13 @@
 
 ### Цель: Совершенствование навыков составления программ с библиотекой Pygame ###
 
-
-
 #### Задача: ####
 
 > Создайте вывод рейтинга игрока, продумайте стратегию продолжения игры и ее завершение
 
 ##### Контрольный пример: #####
 
-> Получаю:  
+> Получаю:
 > 1) Кнопка для возможности выхода из игры после игровой сессии;
 > 2) Кнопка для повтороного запуска игры;
 > 3) Таблица лидеров с десятью лучшими по времени прохождения игроками
@@ -20,8 +18,14 @@
 ##### Системный анализ: #####
 
 > Входные данные: `None`    
-> Промежуточные данные: `int screen_width`, `int screen_height`, `tuple black`, `tuple white`, `tuple red`, `tuple green`, `tuple blue` `int line_width`, `int line_gap`, `int line_offset`, `int door_width`, `int max_openings_per_line`, `int player_radius`, `int player_speed`, `int player_x`, `int player_y`, `bool is_muted`, `bool is_paused`, `list lines`, `int num_openings`, `list openings`, `int last_opening_bottom`, `typle leaderboard`, `str name`, `str time_str`, `float time_result`, `int y_offset`, `int line_height`, `int player_name`,  `int button_width`, `int button_height`, `float start_time`, `bool collided`, `float elapsed_time`     
-> Выходные данные: `background_image`, `victory_sound`, `defeat_sound`, `float elapsed_time`, `str name`, `float time_timeresult`   
+> Промежуточные данные: `int screen_width`, `int screen_height`, `tuple black`, `tuple white`, `tuple red`,
+`tuple green`, `tuple blue` `int line_width`, `int line_gap`, `int line_offset`, `int door_width`,
+`int max_openings_per_line`, `int player_radius`, `int player_speed`, `int player_x`, `int player_y`, `bool is_muted`,
+`bool is_paused`, `list lines`, `int num_openings`, `list openings`, `int last_opening_bottom`, `typle leaderboard`,
+`str name`, `str time_str`, `float time_result`, `int y_offset`, `int line_height`, `int player_name`,
+`int button_width`, `int button_height`, `float start_time`, `bool collided`, `float elapsed_time`     
+> Выходные данные: `background_image`, `victory_sound`, `defeat_sound`, `float elapsed_time`, `str name`,
+`float time_timeresult`
 
 ##### Блок схема: #####
 
@@ -34,7 +38,6 @@ import os
 import pygame
 import random
 import time
-
 
 # Инициализация Pygame
 pygame.init()
@@ -82,12 +85,14 @@ pygame.mixer.music.play(-1)  # Цикл бесконечно
 is_muted = False
 is_paused = False
 
+
 # Функция для отрисовки стен
 def draw_walls():
     lines = []
     for i in range(0, screen_width, line_gap):
         num_openings = random.randint(1, max_openings_per_line)
-        openings = sorted(random.sample(range(line_offset + door_width, screen_height - line_offset - door_width - 40), num_openings))
+        openings = sorted(
+            random.sample(range(line_offset + door_width, screen_height - line_offset - door_width - 40), num_openings))
 
         last_opening_bottom = 0
         for opening_top in openings:
@@ -100,6 +105,7 @@ def draw_walls():
             lines.append(pygame.Rect(i, last_opening_bottom, line_width, screen_height - last_opening_bottom - 40))
     return lines
 
+
 # Функция для отображения текста
 def show_message(message):
     font = pygame.font.Font(None, 74)
@@ -109,8 +115,6 @@ def show_message(message):
     screen.blit(text, text_rect)
     pygame.display.update()
     pygame.time.delay(5000)
-
-
 
 
 # Функция для обработки паузы и звука
@@ -136,7 +140,6 @@ def handle_buttons():
             pygame.mixer.music.unpause()  # Возобновить музыку
 
 
-
 # Функция для чтения и сохранения рейтинга с ником
 def update_leaderboard(elapsed_time, player_name):
     leaderboard = []
@@ -154,7 +157,6 @@ def update_leaderboard(elapsed_time, player_name):
     # Добавление нового результата
     leaderboard.append((player_name, elapsed_time))
 
-
     # Сортировка результатов по времени (возрастание)
     leaderboard = sorted(leaderboard, key=lambda x: x[1])
 
@@ -165,7 +167,6 @@ def update_leaderboard(elapsed_time, player_name):
     with open('leaderboard.txt', 'w') as file:
         for name, time_result in leaderboard:
             file.write(f"{name}: {time_result:.2f}\n")
-
 
 
 # Функция для отображения лидеров
@@ -200,8 +201,6 @@ def show_leaderboard():
     pygame.time.delay(5000)  # Задержка на 5 секунд перед возвратом
 
 
-
-
 # Функция для отображения поля ввода ника и кнопки сохранения
 def show_name_input(elapsed_time):
     font = pygame.font.Font(None, 36)
@@ -223,7 +222,8 @@ def show_name_input(elapsed_time):
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                if save_button_rect.collidepoint(mouse_pos) and player_name.strip():  # Проверка нажатия на кнопку сохранения
+                if save_button_rect.collidepoint(
+                        mouse_pos) and player_name.strip():  # Проверка нажатия на кнопку сохранения
                     update_leaderboard(elapsed_time, player_name)
                     input_active = False  # Закрыть цикл ввода и вернуться в игру
 
@@ -240,8 +240,6 @@ def show_name_input(elapsed_time):
         save_text = font.render("Сохранить", True, white)
         save_text_rect = save_text.get_rect(center=save_button_rect.center)
         screen.blit(save_text, save_text_rect)
-
-
 
         pygame.display.update()
 
@@ -381,7 +379,8 @@ def main():
             player_y += player_speed
 
         # Проверка столкновений игрока со стенами
-        player_rect = pygame.Rect(player_x - player_radius, player_y - player_radius, player_radius * 2, player_radius * 2)
+        player_rect = pygame.Rect(player_x - player_radius, player_y - player_radius, player_radius * 2,
+                                  player_radius * 2)
         collided = False
 
         for line in lines:
@@ -395,7 +394,7 @@ def main():
             if not is_muted:  # Проверить, что звук не выключен
                 defeat_sound.play()  # Проиграть звук поражения
             elapsed_time = time.time() - start_time  # Вычислить время
-            show_time_message(elapsed_time, "Проигрыш!", game_over= False)  # Показать сообщение о времени
+            show_time_message(elapsed_time, "Проигрыш!", game_over=False)  # Показать сообщение о времени
             # Сброс начальных параметров для новой игры
             player_x = screen_width - 12
             player_y = screen_height - 60
@@ -418,8 +417,6 @@ def main():
             player_x = screen_width - 12
             player_y = screen_height - 60
             start_time = time.time()  # Сбросить таймер
-
-
 
             if not is_muted:  # Проверить состояние звука при перезапуске
                 pygame.mixer.music.play(-1)  # Перезапустить музыку
@@ -474,27 +471,33 @@ if __name__ == "__main__":
 > 1,2) Кнопки перезапуска и завершения игры:  
 > ![prim1.png](prim1.png)
 > 3) Поле для ввода ника:
-> ![prim2.png](prim2.png)
-> Таблица лидеров:  
-![prim3.png](prim3.png)
+     > ![prim2.png](prim2.png)
+     > Таблица лидеров:  
+     ![prim3.png](prim3.png)
+
 ##### Контрольные вопросы: #####
 
 1. Модули для работы программы:  
-`pygame`: Библиотека для создания игр, обеспечивающая работу с графикой, звуком и событиями.  
-`random`: Модуль для генерации случайных чисел, используемый для случайного размещения стен в лабиринте.  
-`time`: Модуль для работы с временем, используемый для отслеживания времени игры и вычисления прошедшего времени.  
+   `pygame`: Библиотека для создания игр, обеспечивающая работу с графикой, звуком и событиями.  
+   `random`: Модуль для генерации случайных чисел, используемый для случайного размещения стен в лабиринте.  
+   `time`: Модуль для работы с временем, используемый для отслеживания времени игры и вычисления прошедшего времени.
 
 
 2. Функции для работы программы:  
-`main()`: Основная функция программы, управляющая логикой игры, обработкой событий, движением игрока и отрисовкой элементов на экране.  
-`draw_walls()`: Функция для отрисовки стен лабиринта, генерирующая случайные отверстия в стенах и возвращающая их позиции в виде списка прямоугольников.  
-`show_message(message)`: Функция для отображения текстовых сообщений (например, "Победа!" или "Проигрыш!") на экране.  
-`show_time_message(elapsed_time, result_message)`: Функция для отображения сообщения с прошедшим временем и результатом игры.  
-`handle_buttons()`: Функция для обработки нажатий на кнопки паузы и звука.  
-`update_leaderboard(elapsed_time, player_name)`: Обновляет таблицу лидеров с учетом нового результата игрока. 
-`show_leaderboard()`: Отображает на экране таблицу лидеров. 
-`show_name_input(elapsed_time)`: Позволяет игроку ввести свое имя после окончания игры и сохранения его результата.
-
+   `main()`: Основная функция программы, управляющая логикой игры, обработкой событий, движением игрока и отрисовкой
+   элементов на экране.  
+   `draw_walls()`: Функция для отрисовки стен лабиринта, генерирующая случайные отверстия в стенах и возвращающая их
+   позиции в виде списка прямоугольников.  
+   `show_message(message)`: Функция для отображения текстовых сообщений (например, "Победа!" или "Проигрыш!") на
+   экране.  
+   `show_time_message(elapsed_time, result_message)`: Функция для отображения сообщения с прошедшим временем и
+   результатом игры.  
+   `handle_buttons()`: Функция для обработки нажатий на кнопки паузы и звука.  
+   `update_leaderboard(elapsed_time, player_name)`: Обновляет таблицу лидеров с учетом нового результата игрока.
+   `show_leaderboard()`: Отображает на экране таблицу лидеров.
+   `show_name_input(elapsed_time)`: Позволяет игроку ввести свое имя после окончания игры и сохранения его результата.
 
 ##### Вывод по проделанной работе: #####
-> В ходе данной практики я добавил в свою игру возможность завершения и продолжения игровой сессии, а также добавил рейтинг.
+
+> В ходе данной практики я добавил в свою игру возможность завершения и продолжения игровой сессии, а также добавил
+> рейтинг.
