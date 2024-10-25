@@ -3,6 +3,7 @@ import random
 import time
 import os
 
+
 # Инициализация Pygame
 pygame.init()
 pygame.mixer.init()
