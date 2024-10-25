@@ -12,13 +12,16 @@
 
 ##### Контрольный пример: #####
 
-> Получаю:
+> Получаю:  
+> 1) Кнопка для возможности выхода из игры после игровой сессии;
+> 2) Кнопка для повтороного запуска игры;
+> 3) Таблица лидеров с десятью лучшими по времени прохождения игроками
 
 ##### Системный анализ: #####
 
 > Входные данные: `None`    
-> Промежуточные данные: `int screen_width`, `int screen_height`, `tuple black`, `tuple white`, `tuple red`, `tuple green`, `tuple blue` `int line_width`, `int line_gap`, `int line_offset`, `int door_width`, `int max_openings_per_line`, `int player_radius`, `int player_speed`, `int player_x`, `int player_y`, `bool is_muted`, `bool is_paused`, `list lines`, `int num_openings`, `list openings`, `int last_opening_bottom`, `int button_width`, `int button_height`, `float start_time`, `bool collided`, `float elapsed_time`     
-> Выходные данные: `background_image`, `victory_sound`, `defeat_sound`, `float elapsed_time`   
+> Промежуточные данные: `int screen_width`, `int screen_height`, `tuple black`, `tuple white`, `tuple red`, `tuple green`, `tuple blue` `int line_width`, `int line_gap`, `int line_offset`, `int door_width`, `int max_openings_per_line`, `int player_radius`, `int player_speed`, `int player_x`, `int player_y`, `bool is_muted`, `bool is_paused`, `list lines`, `int num_openings`, `list openings`, `int last_opening_bottom`, `typle leaderboard`, `str name`, `str time_str`, `float time_result`, `int y_offset`, `int line_height`, `int player_name`,  `int button_width`, `int button_height`, `float start_time`, `bool collided`, `float elapsed_time`     
+> Выходные данные: `background_image`, `victory_sound`, `defeat_sound`, `float elapsed_time`, `str name`, `float time_timeresult`   
 
 ##### Блок схема: #####
 
@@ -27,9 +30,11 @@
 ##### Код программы: #####
 
 ```python
+import os
 import pygame
 import random
 import time
+
 
 # Инициализация Pygame
 pygame.init()
@@ -105,56 +110,8 @@ def show_message(message):
     pygame.display.update()
     pygame.time.delay(5000)
 
-# Функция для отображения сообщения о времени и кнопках
-def show_time_message(elapsed_time, result_message):
-    font = pygame.font.Font(None, 36)
-    message = f"Время: {elapsed_time:.2f} секунд"
-    text = font.render(message, True, white)
-    text_rect = text.get_rect(center=(screen_width // 2, screen_height // 2 - 40))
 
-    screen.fill(black)
-    screen.blit(text, text_rect)
 
-    # Отображение результата ("Победа!" или "Проигрыш!")
-    result_text = font.render(result_message, True, white)
-    result_text_rect = result_text.get_rect(center=(screen_width // 2, screen_height // 2 - 80))  # Над таймером
-    screen.blit(result_text, result_text_rect)
-
-    # Размеры кнопок
-    button_width = 200
-    button_height = 50
-
-    # Создание кнопок
-    retry_button_rect = pygame.Rect((screen_width - button_width) // 2, screen_height // 2 + 10, button_width, button_height)
-    exit_button_rect = pygame.Rect((screen_width - button_width) // 2, screen_height // 2 + 70, button_width, button_height)
-
-    # Отрисовка кнопок
-    pygame.draw.rect(screen, blue, retry_button_rect)
-    pygame.draw.rect(screen, blue, exit_button_rect)
-
-    # Текст кнопок
-    retry_text = font.render("Еще раз", True, white)
-    exit_text = font.render("Выйти", True, white)
-    retry_text_rect = retry_text.get_rect(center=retry_button_rect.center)
-    exit_text_rect = exit_text.get_rect(center=exit_button_rect.center)
-    screen.blit(retry_text, retry_text_rect)
-    screen.blit(exit_text, exit_text_rect)
-
-    pygame.display.update()
-
-    # Ожидание нажатия кнопки
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_pos = pygame.mouse.get_pos()
-                if retry_button_rect.collidepoint(mouse_pos):
-                    return True  # Повторить игру
-                elif exit_button_rect.collidepoint(mouse_pos):
-                    pygame.quit()
-                    quit()  # Выйти из игры
 
 # Функция для обработки паузы и звука
 def handle_buttons():
@@ -178,7 +135,216 @@ def handle_buttons():
         else:
             pygame.mixer.music.unpause()  # Возобновить музыку
 
-# Основная функция
+
+
+# Функция для чтения и сохранения рейтинга с ником
+def update_leaderboard(elapsed_time, player_name):
+    leaderboard = []
+
+    # Проверка, существует ли файл с результатами
+    if os.path.exists('leaderboard.txt'):
+        with open('leaderboard.txt', 'r') as file:
+            for line in file:
+                try:
+                    name, time_str = line.strip().split(': ')
+                    leaderboard.append((name, float(time_str)))  # Преобразовать строку в кортеж (имя, время)
+                except ValueError:
+                    continue  # Игнорировать некорректные данные
+
+    # Добавление нового результата
+    leaderboard.append((player_name, elapsed_time))
+
+
+    # Сортировка результатов по времени (возрастание)
+    leaderboard = sorted(leaderboard, key=lambda x: x[1])
+
+    # Ограничение до 10 лучших результатов
+    leaderboard = leaderboard[:10]
+
+    # Сохранение в файл
+    with open('leaderboard.txt', 'w') as file:
+        for name, time_result in leaderboard:
+            file.write(f"{name}: {time_result:.2f}\n")
+
+
+
+# Функция для отображения лидеров
+def show_leaderboard():
+    if os.path.exists('leaderboard.txt'):
+        with open('leaderboard.txt', 'r') as file:
+            leaderboard = file.readlines()
+            leaderboard = [time.strip() for time in leaderboard]
+    else:
+        leaderboard = ["Нет результатов"]
+
+    font = pygame.font.Font(None, 36)
+    leaderboard_title = font.render("Рейтинг лучших:", True, white)
+    screen.fill(black)
+
+    leaderboard_title_rect = leaderboard_title.get_rect(center=(screen_width // 2, screen_height // 2 - 120))
+    screen.blit(leaderboard_title, leaderboard_title_rect)
+
+    # Задаем начальные координаты по Y для отображения результатов
+    y_offset = screen_height // 2 - 90  # Начальная позиция по Y
+    line_height = 30  # Расстояние между строками
+
+    # Отображаем результаты
+    for i in range(min(10, len(leaderboard))):  # Ограничение до 10 результатов
+        time_result = leaderboard[i]
+        result_text = font.render(f"{i + 1}. {time_result}", True, white)
+        result_text_rect = result_text.get_rect(center=(screen_width // 2, y_offset))
+        screen.blit(result_text, result_text_rect)
+        y_offset += line_height  # Увеличиваем смещение по вертикали для следующей строки
+
+    pygame.display.update()
+    pygame.time.delay(5000)  # Задержка на 5 секунд перед возвратом
+
+
+
+
+# Функция для отображения поля ввода ника и кнопки сохранения
+def show_name_input(elapsed_time):
+    font = pygame.font.Font(None, 36)
+    input_box = pygame.Rect(screen_width // 2 - 100, screen_height // 2 - 40, 200, 50)
+    save_button_rect = pygame.Rect(screen_width // 2 - 100, screen_height // 2 + 20, 200, 50)
+    player_name = ''
+    input_active = True
+
+    while input_active:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    player_name = player_name[:-1]  # Удалить последний символ
+                else:
+                    player_name += event.unicode  # Добавить символ
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if save_button_rect.collidepoint(mouse_pos) and player_name.strip():  # Проверка нажатия на кнопку сохранения
+                    update_leaderboard(elapsed_time, player_name)
+                    input_active = False  # Закрыть цикл ввода и вернуться в игру
+
+        # Очистка экрана
+        screen.fill(black)
+
+        # Отрисовка поля для ввода
+        pygame.draw.rect(screen, white, input_box, 2)
+        name_text = font.render(player_name, True, white)
+        screen.blit(name_text, (input_box.x + 10, input_box.y + 10))
+
+        # Отрисовка кнопки сохранения
+        pygame.draw.rect(screen, blue, save_button_rect)
+        save_text = font.render("Сохранить", True, white)
+        save_text_rect = save_text.get_rect(center=save_button_rect.center)
+        screen.blit(save_text, save_text_rect)
+
+
+
+        pygame.display.update()
+
+
+def show_time_message(elapsed_time, result_message, game_over=False):
+    show_save_button = True
+
+    font = pygame.font.Font(None, 36)
+    message = f"Время: {elapsed_time:.2f} секунд"
+    text = font.render(message, True, white)
+    text_rect = text.get_rect(center=(screen_width // 2, screen_height // 2 - 130))  # Подняли текст
+
+    screen.fill(black)
+    screen.blit(text, text_rect)
+
+    # Отображение результата ("Победа!" или "Проигрыш!")
+    result_text = font.render(result_message, True, white)
+    result_text_rect = result_text.get_rect(center=(screen_width // 2, screen_height // 2 - 170))  # Подняли результат
+    screen.blit(result_text, result_text_rect)
+
+    # Размеры кнопок
+    button_width = 200
+    button_height = 50
+
+    # Создание кнопок (подняли их еще выше)
+    retry_button_rect = pygame.Rect((screen_width - button_width) // 2, screen_height // 2 - 60, button_width,
+                                    button_height)
+    exit_button_rect = pygame.Rect((screen_width - button_width) // 2, screen_height // 2, button_width, button_height)
+    leaderboard_button_rect = pygame.Rect((screen_width - button_width) // 2, screen_height // 2 + 60, button_width,
+                                          button_height)
+
+    # Поле для ввода имени (подняли вверх)
+    input_box = pygame.Rect((screen_width - button_width) // 2, screen_height // 2 + 120, button_width, button_height)
+    save_button_rect = pygame.Rect((screen_width - button_width) // 2, screen_height // 2 + 180, button_width,
+                                   button_height)
+    player_name = ''
+
+    # Флаг активности поля ввода
+    input_active = True
+
+    while input_active:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    player_name = player_name[:-1]  # Удалить последний символ
+                else:
+                    player_name += event.unicode  # Добавить символ
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if retry_button_rect.collidepoint(mouse_pos):
+                    return True  # Повторить игру
+                elif exit_button_rect.collidepoint(mouse_pos):
+                    pygame.quit()
+                    quit()  # Выйти из игры
+                elif leaderboard_button_rect.collidepoint(mouse_pos):  # Проверка нажатия на кнопку "Лидеры"
+                    show_leaderboard()  # Показать таблицу лидеров
+                    pygame.time.delay(5000)  # Задержка для показа таблицы лидеров
+                elif show_save_button and save_button_rect.collidepoint(mouse_pos) and player_name.strip():
+                    update_leaderboard(elapsed_time, player_name)
+                    show_save_button = False  # Удалить кнопку сохранения
+
+        # Очистка экрана и перерисовка кнопок
+        screen.fill(black)
+        screen.blit(result_text, result_text_rect)
+        screen.blit(text, text_rect)
+
+        pygame.draw.rect(screen, blue, retry_button_rect)
+        pygame.draw.rect(screen, blue, exit_button_rect)
+        pygame.draw.rect(screen, blue, leaderboard_button_rect)  # Отрисовка кнопки "Лидеры"
+
+        retry_text = font.render("Еще раз", True, white)
+        exit_text = font.render("Выйти", True, white)
+        leaderboard_text = font.render("Лидеры", True, white)  # Текст кнопки "Лидеры"
+
+        retry_text_rect = retry_text.get_rect(center=retry_button_rect.center)
+        exit_text_rect = exit_text.get_rect(center=exit_button_rect.center)
+        leaderboard_text_rect = leaderboard_text.get_rect(center=leaderboard_button_rect.center)
+
+        screen.blit(retry_text, retry_text_rect)
+        screen.blit(exit_text, exit_text_rect)
+        screen.blit(leaderboard_text, leaderboard_text_rect)  # Отображение текста кнопки "Лидеры"
+
+        if game_over:
+            # Отрисовка поля для ввода (поднято вверх)
+            pygame.draw.rect(screen, white, input_box, 2)
+            name_text = font.render(player_name, True, white)
+            screen.blit(name_text, (input_box.x + 10, input_box.y + 10))
+
+            # Отрисовка кнопки сохранения, если это необходимо
+            if show_save_button:
+                pygame.draw.rect(screen, blue, save_button_rect)
+                save_text = font.render("Сохранить", True, white)
+                save_text_rect = save_text.get_rect(center=save_button_rect.center)
+                screen.blit(save_text, save_text_rect)
+
+        pygame.display.update()
+
+
+# Обновление в основной функции при победе
 def main():
     global player_x, player_y, start_time
     lines = draw_walls()  # Отрисовка стен
@@ -218,12 +384,10 @@ def main():
         player_rect = pygame.Rect(player_x - player_radius, player_y - player_radius, player_radius * 2, player_radius * 2)
         collided = False
 
-
         for line in lines:
             if line.colliderect(player_rect):
                 collided = True
                 break
-
 
         # Проверка столкновения с нижней стеной (поражение)
         if collided:
@@ -231,7 +395,7 @@ def main():
             if not is_muted:  # Проверить, что звук не выключен
                 defeat_sound.play()  # Проиграть звук поражения
             elapsed_time = time.time() - start_time  # Вычислить время
-            show_time_message(elapsed_time, "Проигрыш!")  # Показать сообщение о времени
+            show_time_message(elapsed_time, "Проигрыш!", game_over= False)  # Показать сообщение о времени
             # Сброс начальных параметров для новой игры
             player_x = screen_width - 12
             player_y = screen_height - 60
@@ -248,11 +412,14 @@ def main():
             if not is_muted:  # Проверить, что звук не выключен
                 victory_sound.play()  # Проиграть звук победы
             elapsed_time = time.time() - start_time  # Вычислить время
-            show_time_message(elapsed_time, "Победа!")  # Показать сообщение о времени
+            show_time_message(elapsed_time, "Победа!", game_over=True)  # Показать сообщение о времени и поле для ввода
+            pygame.time.delay(5000)  # Дать время игроку увидеть рейтинг
             # Сброс начальных параметров для новой игры
             player_x = screen_width - 12
             player_y = screen_height - 60
             start_time = time.time()  # Сбросить таймер
+
+
 
             if not is_muted:  # Проверить состояние звука при перезапуске
                 pygame.mixer.music.play(-1)  # Перезапустить музыку
@@ -279,12 +446,13 @@ def main():
         timer_text = timer_font.render(f"Время: {elapsed_time:.2f} сек", True, white)
         screen.blit(timer_text, (10, screen_height - 30))  # Позиция текста таймера
 
-        # Отрисовка кнопок
+        # Отрисовка кнопок паузы и звука
         pygame.draw.rect(screen, blue, pause_button_rect)
         pygame.draw.rect(screen, blue, mute_button_rect)
 
-        # Текст кнопок
-        font = pygame.font.Font(None, 36)  # Шрифт для кнопок
+        # В начале функции main()
+        font = pygame.font.Font(None, 36)  # Создаем шрифт
+
         pause_text = font.render("Пауза", True, white)
         mute_text = font.render("Звук", True, white)
         pause_text_rect = pause_text.get_rect(center=pause_button_rect.center)
@@ -293,19 +461,22 @@ def main():
         screen.blit(mute_text, mute_text_rect)
 
         pygame.display.update()
-        clock.tick(60)  # Поддержка 60 кадров в секунду
+        clock.tick(60)
+
 
 # Запуск основной функции
 if __name__ == "__main__":
     main()
-
 ```
 
 ##### Результат работы программы: #####
 
-> Оконное:
-
-
+> 1,2) Кнопки перезапуска и завершения игры:  
+> ![prim1.png](prim1.png)
+> 3) Поле для ввода ника:
+> ![prim2.png](prim2.png)
+> Таблица лидеров:  
+![prim3.png](prim3.png)
 ##### Контрольные вопросы: #####
 
 1. Модули для работы программы:  
@@ -320,7 +491,10 @@ if __name__ == "__main__":
 `show_message(message)`: Функция для отображения текстовых сообщений (например, "Победа!" или "Проигрыш!") на экране.  
 `show_time_message(elapsed_time, result_message)`: Функция для отображения сообщения с прошедшим временем и результатом игры.  
 `handle_buttons()`: Функция для обработки нажатий на кнопки паузы и звука.  
+`update_leaderboard(elapsed_time, player_name)`: Обновляет таблицу лидеров с учетом нового результата игрока. 
+`show_leaderboard()`: Отображает на экране таблицу лидеров. 
+`show_name_input(elapsed_time)`: Позволяет игроку ввести свое имя после окончания игры и сохранения его результата.
+
 
 ##### Вывод по проделанной работе: #####
-
-> 
+> В ходе данной практики я добавил в свою игру возможность завершения и продолжения игровой сессии, а также добавил рейтинг.
