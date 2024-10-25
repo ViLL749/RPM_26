@@ -1,7 +1,6 @@
 import pygame
 import random
 import time
-import os
 
 
 # Инициализация Pygame
@@ -151,14 +150,25 @@ def show_leaderboard():
     font = pygame.font.Font(None, 36)
     leaderboard_title = font.render("Рейтинг лучших:", True, white)
     screen.fill(black)
-    screen.blit(leaderboard_title, (screen_width // 2 - 100, screen_height // 2 - 120))
 
-    for i, time_result in enumerate(leaderboard[:10], 1):
-        result_text = font.render(f"{i}. {time_result}", True, white)
-        screen.blit(result_text, (screen_width // 2 - 100, screen_height // 2 - 120 + i * 30))
+    leaderboard_title_rect = leaderboard_title.get_rect(center=(screen_width // 2, screen_height // 2 - 120))
+    screen.blit(leaderboard_title, leaderboard_title_rect)
+
+    # Задаем начальные координаты по Y для отображения результатов
+    y_offset = screen_height // 2 - 90  # Начальная позиция по Y
+    line_height = 30  # Расстояние между строками
+
+    # Отображаем результаты
+    for i in range(min(10, len(leaderboard))):  # Ограничение до 10 результатов
+        time_result = leaderboard[i]
+        result_text = font.render(f"{i + 1}. {time_result}", True, white)
+        result_text_rect = result_text.get_rect(center=(screen_width // 2, y_offset))
+        screen.blit(result_text, result_text_rect)
+        y_offset += line_height  # Увеличиваем смещение по вертикали для следующей строки
 
     pygame.display.update()
     pygame.time.delay(5000)  # Задержка на 5 секунд перед возвратом
+
 
 
 
