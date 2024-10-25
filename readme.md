@@ -25,7 +25,7 @@
 `bool is_paused`, `list lines`, `int num_openings`, `list openings`, `int last_opening_bottom`, `typle leaderboard`,
 `str name`, `str time_str`, `float time_result`, `int y_offset`, `int line_height`, `int player_name`,
 `int button_width`, `int button_height`, `float start_time`, `bool collided`, `float elapsed_time`     
-> Выходные данные: `background_image`, `victory_sound`, `defeat_sound`, `float elapsed_time`, `str name`,
+> Выходные данные: `background_image`, `victory_sound.mp3`, `defeat_sound.mp3`, `game_sound.mp3`, `float elapsed_time`, `str name`,
 `float time_result`
 
 ##### Блок схема: #####
